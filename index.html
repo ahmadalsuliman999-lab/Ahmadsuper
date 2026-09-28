@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الديون والحسابات الشاملة</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --whatsapp: #25d366;
+            --call: #0284c7;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+        }
+        h1, h2, h3 { margin: 0 0 10px 0; }
+        .container { max-width: 600px; margin: auto; }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .card.green { border-right: 5px solid var(--success); }
+        .card.red { border-right: 5px solid var(--danger); }
+        .card.orange { border-right: 5px solid var(--warning); }
+        .card.purple { border-right: 5px solid var(--primary); background: #e0e7ff; }
+        .card h3 { font-size: 14px; color: #64748b; }
+        .card p { font-size: 20px; font-weight: bold; margin: 5px 0 0 0; }
+        .card.purple h3 { color: #3730a3; }
+        .card.purple p { color: #312e81; font-size: 22px; }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 5px;
+        }
+        button.danger { background: var(--danger); }
+        button.success { background: var(--success); }
+        button.warning { background: var(--warning); color: #fff; }
+        
+        /* تنسيق أزرار الاتصال والواتساب السريعة */
+        .contact-btns {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .btn-call {
+            background: var(--call);
+            color: white;
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .btn-whatsapp {
+            background: var(--whatsapp);
+            color: white;
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 12px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .item-row {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .item-info {
+            cursor: pointer;
+            flex: 1;
+        }
+        .hidden { display: none !important; }
+        .back-btn { background: #64748b; margin-bottom: 15px; width: auto; padding: 5px 15px; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+        th { background: #f1f5f9; }
+        .action-cell { display: flex; gap: 5px; }
+        .entity-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- الرئيسية: لوحة التحكم -->
+    <div id="home-view">
+        <h1>إدارة الحسابات والديون</h1>
+        
+        <div class="stats-grid">
+            <div class="card purple">
+                <h3>المحصلة الصافية (الفرق العام)</h3>
+                <p id="total-net-balance">0</p>
+            </div>
+            <div class="card red">
+                <h3>إجمالي الديون على الزبائن (لك)</h3>
+                <p id="total-debtors">0</p>
+            </div>
+            <div class="card orange">
+                <h3>إجمالي الديون للموزعين (عليك)</h3>
+                <p id="total-suppliers-debt">0</p>
+            </div>
+            <div class="card green">
+                <h3>إجمالي المدفوعات المحصلة من الزبائن</h3>
+                <p id="total-paid">0</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="btn-tab-cust" onclick="switchTab('customers')">الزبائن (البيع)</button>
+            <button class="tab-btn" id="btn-tab-supp" onclick="switchTab('suppliers')">الموزعين (الجملة)</button>
+        </div>
+
+        <div id="section-customers">
+            <button onclick="showAddModal('customer')">+ إضافة زبون جديد</button>
+            <h3 style="margin-top: 15px;">قائمة الزبائن</h3>
+            <div id="customers-list"></div>
+        </div>
+
+        <div id="section-suppliers" class="hidden">
+            <button class="success" onclick="showAddModal('supplier')">+ إضافة موزع / محل جملة جديد</button>
+            <h3 style="margin-top: 15px;">قائمة الموزعين</h3>
+            <div id="suppliers-list"></div>
+        </div>
+    </div>
+
+    <!-- صفحة تفاصيل الحساب -->
+    <div id="detail-view" class="hidden">
+        <button class="back-btn" onclick="goHome()">← عودة للقائمة الرئيسية</button>
+        <h2 id="view-name">الاسم</h2>
+        
+        <!-- معلومات الاتصال ورقم الهاتف داخل التفاصيل -->
+        <div style="margin-bottom:10px;">
+            <span id="view-phone" style="color:#64748b; display:inline-block; margin-left: 10px;"></span>
+            <span id="view-contact-container"></span>
+        </div>
+        
+        <!-- أزرار تعديل وحذف الزبون / الموزع -->
+        <div class="entity-actions">
+            <button class="warning" onclick="showEditEntityModal()" style="margin:0; flex:1;">تعديل بيانات الحساب</button>
+            <button class="danger" onclick="promptDeleteEntity()" style="margin:0; flex:1;">حذف الحساب بالكامل</button>
+        </div>
+
+        <div class="card orange" style="margin-bottom: 15px;">
+            <h3>الصافي الحالي لهذا الحساب</h3>
+            <p id="view-balance">0</p>
+        </div>
+
+        <div id="action-buttons-container"></div>
+
+        <h3 style="margin-top: 20px;">سجل الحركات</h3>
+        <div id="transactions-list"></div>
+    </div>
+
+</div>
+
+<!-- نافذة إضافة أو تعديل زبون / موزع -->
+<div id="add-modal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:400px;">
+        <h3 id="modal-main-title">إضافة</h3>
+        <label>الاسم:</label>
+        <input type="text" id="modal-input-name">
+        <label>رقم الهاتف (اختياري):</label>
+        <input type="tel" id="modal-input-phone" placeholder="مثلاً: 0912345678">
+        <button onclick="saveEntity()">حفظ</button>
+        <button class="danger" onclick="closeModals()" style="background:#64748b;">إلغاء</button>
+    </div>
+</div>
+
+<!-- نافذة إضافة أو تعديل حركة مالية في السجل -->
+<div id="transaction-modal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:400px;">
+        <h3 id="t-modal-title">تسجيل حركة</h3>
+        <label>المبلغ:</label>
+        <input type="number" id="t-amount" placeholder="0">
+        <label>ملاحظات (بيان / تفاصيل البضاعة):</label>
+        <input type="text" id="t-note" placeholder="مثلاً: بضاعة فاتورة رقم...">
+        <button onclick="saveTransaction()">إتمام العملية</button>
+        <button class="danger" onclick="closeModals()" style="background:#64748b;">إلغاء</button>
+    </div>
+</div>
+
+<!-- نافذة تأكيد حذف حركة فردية -->
+<div id="delete-modal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:350px;text-align:center;">
+        <h3 style="color:var(--danger);margin-bottom:10px;">تنبيه الحذف</h3>
+        <p style="margin-bottom:20px;">هل أنت متأكد تماماً من رغبتك في حذف هذه الحركة نهائياً؟</p>
+        <div style="display:flex;gap:10px;">
+            <button class="danger" onclick="executeDeleteTransaction()" style="margin:0;flex:1;">نعم، احذف</button>
+            <button onclick="closeModals()" style="background:#64748b;margin:0;flex:1;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تأكيد حذف الحساب بالكامل -->
+<div id="delete-entity-modal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <div style="background:white;padding:20px;border-radius:10px;width:90%;max-width:350px;text-align:center;">
+        <h3 style="color:var(--danger);margin-bottom:10px;">حذف الحساب بالكامل</h3>
+        <p style="margin-bottom:20px;">تحذير: سيتم حذف هذا الحساب مع كافة الحركات والسجلات المالية التابعة له نهائياً!</p>
+        <div style="display:flex;gap:10px;">
+            <button class="danger" onclick="executeDeleteEntity()" style="margin:0;flex:1;">نعم، حذف الحساب</button>
+            <button onclick="closeModals()" style="background:#64748b;margin:0;flex:1;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('general_debt_app_db')) || {
+        customers: [],
+        suppliers: [],
+        transactions: []
+    };
+
+    let activeType = 'customer';
+    let activeEntityId = null;
+    let currentTransType = '';
+    let editingTransId = null;
+    let pendingDeleteId = null;
+    let isEditingEntity = false;
+
+    function saveData() {
+        localStorage.setItem('general_debt_app_db', JSON.stringify(db));
+    }
+
+    function switchTab(tab) {
+        if(tab === 'customers') {
+            document.getElementById('section-customers').classList.remove('hidden');
+            document.getElementById('section-suppliers').classList.add('hidden');
+            document.getElementById('btn-tab-cust').classList.add('active');
+            document.getElementById('btn-tab-supp').classList.remove('active');
+        } else {
+            document.getElementById('section-suppliers').classList.remove('hidden');
+            document.getElementById('section-customers').classList.add('hidden');
+            document.getElementById('btn-tab-supp').classList.add('active');
+            document.getElementById('btn-tab-cust').classList.remove('active');
+        }
+    }
+
+    function renderHome() {
+        let totalDebtors = 0;
+        let totalSuppliersDebt = 0;
+        let totalPaid = 0;
+
+        let custHtml = '';
+        db.customers.forEach(c => {
+            let cTrans = db.transactions.filter(t => t.entityId === c.id);
+            let balance = cTrans.reduce((acc, t) => {
+                if (t.type === 'دين_زبون') return acc + t.amount;
+                if (t.type === 'تسديد_زبون' || t.type === 'خصم_زبون') return acc - t.amount;
+                return acc;
+            }, 0);
+
+            totalDebtors += (balance > 0 ? balance : 0);
+            totalPaid += cTrans.filter(t => t.type === 'تسديد_زبون').reduce((acc, t) => acc + t.amount, 0);
+
+            let contactBtns = '';
+            if (c.phone) {
+                contactBtns = `
+                    <div class="contact-btns" onclick="event.stopPropagation()">
+                        <a href="tel:${c.phone}" class="btn-call">📞 اتصال</a>
+                        <a href="https://wa.me/${c.phone}" target="_blank" class="btn-whatsapp">💬 واتساب</a>
+                    </div>
+                `;
+            }
+
+            custHtml += `
+                <div class="item-row">
+                    <div class="item-info" onclick="openEntity(${c.id}, 'customer')">
+                        <strong>${c.name}</strong><br>
+                        <small style="color:#64748b;">${c.phone || 'بدون هاتف'}</small>
+                        ${contactBtns}
+                    </div>
+                    <div style="text-align:left; font-weight:bold; color: ${balance > 0 ? 'var(--danger)' : 'var(--success)'}" onclick="openEntity(${c.id}, 'customer')">
+                        ${balance} ل.س
+                    </div>
+                </div>
+            `;
+        });
+
+        let suppHtml = '';
+        db.suppliers.forEach(s => {
+            let sTrans = db.transactions.filter(t => t.entityId === s.id);
+            let balance = sTrans.reduce((acc, t) => {
+                if (t.type === 'دين_موزع') return acc + t.amount;
+                if (t.type === 'تسديد_موزع') return acc - t.amount;
+                return acc;
+            }, 0);
+
+            totalSuppliersDebt += (balance > 0 ? balance : 0);
+
+            let contactBtns = '';
+            if (s.phone) {
+                contactBtns = `
+                    <div class="contact-btns" onclick="event.stopPropagation()">
+                        <a href="tel:${s.phone}" class="btn-call">📞 اتصال</a>
+                        <a href="https://wa.me/${s.phone}" target="_blank" class="btn-whatsapp">💬 واتساب</a>
+                    </div>
+                `;
+            }
+
+            suppHtml += `
+                <div class="item-row">
+                    <div class="item-info" onclick="openEntity(${s.id}, 'supplier')">
+                        <strong>${s.name}</strong><br>
+                        <small style="color:#64748b;">${s.phone || 'بدون هاتف'}</small>
+                        ${contactBtns}
+                    </div>
+                    <div style="text-align:left; font-weight:bold; color: var(--warning)" onclick="openEntity(${s.id}, 'supplier')">
+                        ${balance} ل.س
+                    </div>
+                </div>
+            `;
+        });
+
+        let netBalance = totalDebtors - totalSuppliersDebt;
+
+        document.getElementById('customers-list').innerHTML = custHtml || '<p style="text-align:center;color:#64748b;">لا يوجد زبائن مضافين</p>';
+        document.getElementById('suppliers-list').innerHTML = suppHtml || '<p style="text-align:center;color:#64748b;">لا يوجد موزعين مضافين</p>';
+        
+        document.getElementById('total-debtors').innerText = totalDebtors + ' ل.س';
+        document.getElementById('total-suppliers-debt').innerText = totalSuppliersDebt + ' ل.س';
+        document.getElementById('total-paid').innerText = totalPaid + ' ل.س';
+        document.getElementById('total-net-balance').innerText = netBalance + ' ل.س';
+    }
+
+    function showAddModal(type) {
+        activeType = type;
+        isEditingEntity = false;
+        document.getElementById('modal-main-title').innerText = type === 'customer' ? 'إضافة زبون جديد' : 'إضافة موزع / محل جملة';
+        document.getElementById('modal-input-name').value = '';
+        document.getElementById('modal-input-phone').value = '';
+        document.getElementById('add-modal').classList.remove('hidden');
+    }
+
+    function showEditEntityModal() {
+        isEditingEntity = true;
+        let entity = (activeType === 'customer' ? db.customers : db.suppliers).find(item => item.id === activeEntityId);
+        if(!entity) return;
+
+        document.getElementById('modal-main-title').innerText = 'تعديل بيانات الحساب';
+        document.getElementById('modal-input-name').value = entity.name;
+        document.getElementById('modal-input-phone').value = entity.phone || '';
+        document.getElementById('add-modal').classList.remove('hidden');
+    }
+
+    function saveEntity() {
+        let name = document.getElementById('modal-input-name').value;
+        let phone = document.getElementById('modal-input-phone').value;
+        if (!name) return alert('يرجى إدخال الاسم');
+
+        if(isEditingEntity) {
+            let entity = (activeType === 'customer' ? db.customers : db.suppliers).find(item => item.id === activeEntityId);
+            if(entity) {
+                entity.name = name;
+                entity.phone = phone;
+            }
+            document.getElementById('view-name').innerText = name;
+            updateDetailHeaderContact(phone);
+        } else {
+            let newItem = { id: Date.now(), name, phone };
+            if(activeType === 'customer') {
+                db.customers.push(newItem);
+            } else {
+                db.suppliers.push(newItem);
+            }
+        }
+
+        closeModals();
+        saveData();
+        renderHome();
+    }
+
+    function updateDetailHeaderContact(phone) {
+        document.getElementById('view-phone').innerText = phone ? `رقم الهاتف: ${phone}` : 'بدون رقم هاتف';
+        let contactContainer = document.getElementById('view-contact-container');
+        if (phone) {
+            contactContainer.innerHTML = `
+                <a href="tel:${phone}" class="btn-call" style="display:inline-block; margin-left:5px; padding:4px 10px;">📞 اتصال</a>
+                <a href="https://wa.me/${phone}" target="_blank" class="btn-whatsapp" style="display:inline-block; padding:4px 10px;">💬 واتساب</a>
+            `;
+        } else {
+            contactContainer.innerHTML = '';
+        }
+    }
+
+    function promptDeleteEntity() {
+        document.getElementById('delete-entity-modal').classList.remove('hidden');
+    }
+
+    function executeDeleteEntity() {
+        if(activeType === 'customer') {
+            db.customers = db.customers.filter(c => c.id !== activeEntityId);
+        } else {
+            db.suppliers = db.suppliers.filter(s => s.id !== activeEntityId);
+        }
+        db.transactions = db.transactions.filter(t => t.entityId !== activeEntityId);
+        
+        closeModals();
+        saveData();
+        goHome();
+    }
+
+    function openEntity(id, type) {
+        activeEntityId = id;
+        activeType = type;
+        let entity = (type === 'customer' ? db.customers : db.suppliers).find(item => item.id === id);
+        
+        document.getElementById('view-name').innerText = entity.name;
+        updateDetailHeaderContact(entity.phone);
+        
+        let actionButtonsHtml = '';
+        if(type === 'customer') {
+            actionButtonsHtml = `
+                <button onclick="showAddTransactionModal('دين_زبون')">تسجيل دين على الزبون (له مبيعات)</button>
+                <button class="success" onclick="showAddTransactionModal('تسديد_زبون')">تسجيل دفعة واصلة منه (قبض)</button>
+                <button class="danger" onclick="showAddTransactionModal('خصم_زبون')">تسجيل خصم / حسم</button>
+            `;
+        } else {
+            actionButtonsHtml = `
+                <button class="danger" onclick="showAddTransactionModal('دين_موزع')">تسجيل بضاعة أخدتها ديناً منه (عليك)</button>
+                <button class="success" onclick="showAddTransactionModal('تسديد_موزع')">تسجيل دفعة سددتها له (دفع)</button>
+            `;
+        }
+        document.getElementById('action-buttons-container').innerHTML = actionButtonsHtml;
+
+        document.getElementById('home-view').classList.add('hidden');
+        document.getElementById('detail-view').classList.remove('hidden');
+        renderTransactions();
+    }
+
+    function goHome() {
+        activeEntityId = null;
+        document.getElementById('detail-view').classList.add('hidden');
+        document.getElementById('home-view').classList.remove('hidden');
+        renderHome();
+    }
+
+    function showAddTransactionModal(type) {
+        currentTransType = type;
+        editingTransId = null;
+        let title = '';
+        if(type === 'دين_زبون') title = 'تسجيل دين على الزبون';
+        if(type === 'تسديد_زبون') title = 'تسجيل دفعة من الزبون';
+        if(type === 'خصم_زبون') title = 'تسجيل خصم للزبون';
+        if(type === 'دين_موزع') title = 'تسجيل فاتورة بضاعة من الموزع';
+        if(type === 'تسديد_موزع') title = 'تسجيل دفعة مالية للموزع';
+
+        document.getElementById('t-modal-title').innerText = title;
+        document.getElementById('t-amount').value = '';
+        document.getElementById('t-note').value = '';
+        document.getElementById('transaction-modal').classList.remove('hidden');
+    }
+
+    function editTransaction(id) {
+        let trans = db.transactions.find(t => t.id === id);
+        if(!trans) return;
+
+        editingTransId = id;
+        currentTransType = trans.type;
+        document.getElementById('t-modal-title').innerText = 'تعديل الحركة المسجلة';
+        document.getElementById('t-amount').value = trans.amount;
+        document.getElementById('t-note').value = trans.note;
+        document.getElementById('transaction-modal').classList.remove('hidden');
+    }
+
+    function saveTransaction() {
+        let amount = parseFloat(document.getElementById('t-amount').value);
+        let note = document.getElementById('t-note').value;
+        if (!amount || amount <= 0) return alert('يرجى إدخال مبلغ صحيح');
+
+        if(editingTransId) {
+            let trans = db.transactions.find(t => t.id === editingTransId);
+            if(trans) {
+                trans.amount = amount;
+                trans.note = note || 'بدون بيان';
+            }
+        } else {
+            db.transactions.push({
+                id: Date.now(),
+                entityId: activeEntityId,
+                type: currentTransType,
+                amount: amount,
+                note: note || 'بدون بيان',
+                date: new Date().toLocaleDateString('ar-SY')
+            });
+        }
+
+        closeModals();
+        saveData();
+        renderTransactions();
+    }
+
+    function renderTransactions() {
+        let entTrans = db.transactions.filter(t => t.entityId === activeEntityId);
+        let balance = entTrans.reduce((acc, t) => {
+            if (t.type === 'دين_زبون' || t.type === 'دين_موزع') return acc + t.amount;
+            if (t.type === 'تسديد_زبون' || t.type === 'خصم_زبون' || t.type === 'تسديد_موزع') return acc - t.amount;
+            return acc;
+        }, 0);
+
+        document.getElementById('view-balance').innerText = balance + ' ل.س';
+
+        let html = `<table>
+            <tr>
+                <th>الحركة</th>
+                <th>المبلغ</th>
+                <th>البيان</th>
+                <th>التاريخ</th>
+                <th>إجراء</th>
+            </tr>`;
+
+        entTrans.slice().reverse().forEach(t => {
+            let isAdd = (t.type === 'دين_زبون' || t.type === 'دين_موزع');
+            let color = isAdd ? 'var(--danger)' : 'var(--success)';
+            let typeLabel = t.type.replace('_زبون', '').replace('_موزع', '');
+            
+            html += `
+                <tr>
+                    <td style="color:${color}; font-weight:bold;">${typeLabel}</td>
+                    <td>${t.amount}</td>
+                    <td>${t.note}</td>
+                    <td>${t.date}</td>
+                    <td class="action-cell">
+                        <button class="warning" onclick="editTransaction(${t.id})" style="padding:3px 6px; font-size:11px; width:auto; margin:0;">تعديل</button>
+                        <button onclick="promptDeleteTransaction(${t.id}, event)" style="background:var(--danger); padding:3px 6px; font-size:11px; width:auto; margin:0;">حذف</button>
+                    </td>
+                </tr>
+            `;
+        });
+        html += `</table>`;
+
+        document.getElementById('transactions-list').innerHTML = entTrans.length ? html : '<p style="text-align:center;color:#64748b;">لا توجد حركات مسجلة</p>';
+    }
+
+    function promptDeleteTransaction(id, event) {
+        if(event) event.stopPropagation();
+        pendingDeleteId = id;
+        document.getElementById('delete-modal').classList.remove('hidden');
+    }
+
+    function executeDeleteTransaction() {
+        if(pendingDeleteId !== null) {
+            db.transactions = db.transactions.filter(t => t.id !== pendingDeleteId);
+            saveData();
+            renderTransactions();
+        }
+        closeModals();
+    }
+
+    function closeModals() {
+        document.getElementById('add-modal').classList.add('hidden');
+        document.getElementById('transaction-modal').classList.add('hidden');
+        document.getElementById('delete-modal').classList.add('hidden');
+        document.getElementById('delete-entity-modal').classList.add('hidden');
+        editingTransId = null;
+        pendingDeleteId = null;
+        isEditingEntity = false;
+    }
+
+    renderHome();
+</script>
+
+</body>
+</html>
